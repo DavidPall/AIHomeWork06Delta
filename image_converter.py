@@ -3,6 +3,7 @@ from PIL import Image
 import random
 
 list_images = []
+decals = [] # 0 == dalmatian   1 == panda
 with open("dalmatian\\list.txt") as f:
     for line in f:
         line = line.split('\n')
@@ -13,6 +14,7 @@ with open("dalmatian\\list.txt") as f:
         img = img.convert('1')
         # img.save(‘resized_image.jpg')
         list_images.append(img)
+        decals.append(0)
 
 with open("panda\\list.txt") as f:
     for line in f:
@@ -24,6 +26,7 @@ with open("panda\\list.txt") as f:
         img = img.convert('1')
         # img.save(‘resized_image.jpg')
         list_images.append(img)
+        decals.append(1)
 
 order = []
 for i in range(len(list_images)):
@@ -31,5 +34,14 @@ for i in range(len(list_images)):
 
 random.shuffle(order)
 
+decal_output = []
 for i in range(len(list_images)):
     list_images[order[i]].save("std_images\\std_" + str(i) + ".jpg")
+    decal_output.append(decals[order[i]])
+
+
+fout = open("std_images\\decals.txt", "w")
+for d in decal_output:
+    fout.write(str(d) + '\n')
+
+fout.close()
