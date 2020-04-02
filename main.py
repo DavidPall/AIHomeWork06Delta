@@ -13,8 +13,16 @@ def pandasVSdalmatas():
 
     print("len tr : {}    len ts : {}".format(len(train[0]), len(test[0])))
     w, e = OfflineLearning(train[0], train[1], v_sigmoid, v_gradf, lr, stop)
-    print(w)
-    print(e)
+
+    res = decide(test[0], sigmoid, w)
+    res = check_results(res)
+    results = []
+    for row in res:
+        results.append(check_element(row))
+
+    # print(results)
+    for i in range(len(test[1])):
+        print("{} {}".format(test[1][i][0], results[i]))
 
 
 def OfflineLearning(x, d, v_f, v_gradf, lr, stop):
@@ -32,8 +40,8 @@ def OfflineLearning(x, d, v_f, v_gradf, lr, stop):
         y = v_f(v)
         e = numpy.subtract(y, d)
         g = numpy.transpose(x)
-        m = element_mult(e, v_gradf(v), 74)
-        g = g.dot(element_mult(e, v_gradf(v), 74))
+        m = element_mult(e, v_gradf(v), len(x))
+        g = g.dot(element_mult(e, v_gradf(v), len(x)))
         w = numpy.subtract(w,(lr*g))
         E = 0
         for i in e:
@@ -44,7 +52,35 @@ def OfflineLearning(x, d, v_f, v_gradf, lr, stop):
     return w, E
 
 
+def decide(x, fg, w):
+    results = zeros((len(x), len(w)))
+    for i in range(len(x)):
+        for j in range(len(x[i])):
+            q = x[i][j] + w[i][0]
+            results[i][j] = fg(q)
+    return results
 
+
+def check_results(results):
+    res = []
+    for i in range(len(results)):
+        res.append([])
+        for j in range(len(results)):
+            if results[i][j] > 0.5:
+                res[i].append(1)
+            else:
+                res[i].append(0)
+    return res
+
+
+def check_element(list):
+    sum = 0
+    for element in list:
+        sum += element
+    if sum > len(list)/2:
+        return 1 # panda
+    else:
+        return 0 # dalmatian
 
 
 def load(ratio):
@@ -118,7 +154,7 @@ def v_gradf(x):
 def stop(n, e):
     if n > 5000:
         return True
-    if e < 0.001:
+    if e < 0.00001:
         return True
     return False
 
