@@ -8,7 +8,7 @@ from pylab import *
 
 def pandasVSdalmatas():
     train_test_ratio = 0.7
-    lr = 0.0005
+    lr = 0.00005
     train, test = load(train_test_ratio)
 
     print("len tr : {}    len ts : {}".format(len(train[0]), len(test[0])))
@@ -20,9 +20,35 @@ def pandasVSdalmatas():
     for row in res:
         results.append(check_element(row))
 
+
+    good_panda = 0
+    bad_panda = 0
+    good_dalmatian = 0
+    bad_dalmatian = 0
     # print(results)
     for i in range(len(test[1])):
-        print("{} {}".format(test[1][i][0], results[i]))
+        if int(test[1][i][0]) == 1 and int(results[i]) == 1:
+            good_panda += 1
+        if int(test[1][i][0]) == 1 and int(results[i])== 0:
+            bad_panda += 1
+        if int(test[1][i][0]) == 0 and int(results[i]) == 0:
+            good_dalmatian += 1
+        if int(test[1][i][0]) == 0 and int(results[i]) == 1:
+            bad_dalmatian += 1
+
+    konf_matrix(good_panda, bad_panda, good_dalmatian, bad_dalmatian)
+
+    output_list = []
+    print_size = (6, 5)
+    for i in range(print_size[0] * print_size[1]):
+        if int(results[i]) == 1:
+            decision = "panda"
+        else:
+            decision = "dalmata"
+        output_list.append((test[2][i], decision))
+
+    printPic(print_size[0], print_size[1], output_list)
+
 
 
 def OfflineLearning(x, d, v_f, v_gradf, lr, stop):
@@ -85,7 +111,7 @@ def check_element(list):
 
 def load(ratio):
     decals = []
-    with open("std_images\\decals.txt") as f:
+    with open("std_images/decals.txt") as f:
         for line in f:
             line = line.split()
             decals.append(line[0])
@@ -100,7 +126,7 @@ def load(ratio):
     img_test = []
     scores = []
     for i in range(len(decals)):
-        img = Image.open("std_images\\std_" + str(i) + ".jpg", )
+        img = Image.open("std_images/std_" + str(i) + ".jpg", )
         sc = []
         for i in range(100):
             for j in range(100):
@@ -108,7 +134,7 @@ def load(ratio):
         scores.append(sc)
 
     for i in range(len(decals)):
-        img = Image.open("std_images\\std_" + str(i) + ".jpg", )
+        img = Image.open("std_images/std_" + str(i) + ".jpg", )
 
         if i < cut_ind:
             x_train.append(scores[i])
@@ -163,8 +189,9 @@ def printPic(n_rows, n_colums, output_list):
     for i in range(n_rows * n_colums):
         subplot(n_rows, n_colums, i + 1)
         title(output_list[i][1])
-        img = mpimg.imread("std_images/std_{}.jpg".format(output_list[i][0]))
-        plt.imshow(img)
+        #img = mpimg.imread("std_images/std_{}.jpg".format(output_list[i][0]))
+        #plt.imshow(img)
+        plt.imshow(output_list[i][0])
         plt.axis('off')
         plt.subplots_adjust(left=0, bottom=0, right=1, top=0.94, wspace=0.20, hspace=0.48)
 
