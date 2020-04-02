@@ -6,15 +6,16 @@ from matplotlib import image as mpimg
 from pylab import *
 
 
+# Fő függvény
 def pandasVSdalmatas():
     train_test_ratio = 0.7
     lr = 0.00005
-    train, test = load(train_test_ratio)
+    train, test = load(train_test_ratio) # Beolvasás
 
     print("len tr : {}    len ts : {}".format(len(train[0]), len(test[0])))
-    w, e = OfflineLearning(train[0], train[1], v_sigmoid, v_gradf, lr, stop)
+    w, e = OfflineLearning(train[0], train[1], v_sigmoid, v_gradf, lr, stop) # Tanítás
 
-    res = decide(test[0], sigmoid, w)
+    res = decide(test[0], sigmoid, w) # Tesztelés
     res = check_results(res)
     results = []
     for row in res:
@@ -25,7 +26,6 @@ def pandasVSdalmatas():
     bad_panda = 0
     good_dalmatian = 0
     bad_dalmatian = 0
-    # print(results)
     for i in range(len(test[1])):
         if int(test[1][i][0]) == 1 and int(results[i]) == 1:
             good_panda += 1
@@ -36,7 +36,7 @@ def pandasVSdalmatas():
         if int(test[1][i][0]) == 0 and int(results[i]) == 1:
             bad_dalmatian += 1
 
-    konf_matrix(good_panda, bad_panda, good_dalmatian, bad_dalmatian)
+    konf_matrix(good_panda, bad_panda, good_dalmatian, bad_dalmatian) # Konfúziós mátrix
 
     output_list = []
     print_size = (6, 5)
@@ -47,10 +47,10 @@ def pandasVSdalmatas():
             decision = "dalmata"
         output_list.append((test[2][i], decision))
 
-    printPic(print_size[0], print_size[1], output_list)
+    printPic(print_size[0], print_size[1], output_list) # Ábrázolás
 
 
-
+# Tanítási folyamat
 def OfflineLearning(x, d, v_f, v_gradf, lr, stop):
     n = len(x[0])
     w = numpy.zeros((n, 1))
@@ -59,8 +59,6 @@ def OfflineLearning(x, d, v_f, v_gradf, lr, stop):
     epoch = 0
     x = numpy.array(x, dtype=float)
     d = numpy.array(d, dtype=float)
-    # print("x: {}".format(x[0]))
-    # print("d: {}".format(d[0]))
     while True:
         v = x.dot(w)
         y = v_f(v)
@@ -78,6 +76,7 @@ def OfflineLearning(x, d, v_f, v_gradf, lr, stop):
     return w, E
 
 
+# Kiértékelő függvény
 def decide(x, fg, w):
     results = zeros((len(x), len(w)))
     for i in range(len(x)):
@@ -87,6 +86,7 @@ def decide(x, fg, w):
     return results
 
 
+# Eredmény ellenőrzés
 def check_results(results):
     res = []
     for i in range(len(results)):
@@ -99,6 +99,7 @@ def check_results(results):
     return res
 
 
+# végleges döntés
 def check_element(list):
     sum = 0
     for element in list:
@@ -106,9 +107,10 @@ def check_element(list):
     if sum > len(list)/2:
         return 1 # panda
     else:
-        return 0 # dalmatian
+        return 0 # dalmata
 
 
+# Adatok betöltése
 def load(ratio):
     decals = []
     with open("std_images/decals.txt") as f:
@@ -137,19 +139,18 @@ def load(ratio):
         img = Image.open("std_images/std_" + str(i) + ".jpg", )
 
         if i < cut_ind:
-            x_train.append(scores[i])
-            d_train.append([decals[i]])
-            img_train.append(img)
+            x_train.append(scores[i]) # Tanítási halmaz tulajdonságok
+            d_train.append([decals[i]]) # Tanítási halmaz címkék
+            img_train.append(img) # Tanítási halmaz képek
         else:
-            x_test.append(scores[i])
-            d_test.append([decals[i]])
-            img_test.append(img)
-
-    print("x {}".format(shape(x_train)))
+            x_test.append(scores[i]) # tesztelési halmaz tualajdonságok
+            d_test.append([decals[i]]) # tesztelési halmaz címkék
+            img_test.append(img) # tesztelési halmaz képek
 
     return (x_train, d_train, img_train), (x_test, d_test, img_test)
 
 
+# Matlab beli *.
 def element_mult(v1, v2, ln):
     v3 = numpy.zeros((ln, 1))
     for i in range(ln):
@@ -165,18 +166,21 @@ def gradf(x):
     return sigmoid(x) * (1 - sigmoid(x))
 
 
+# Szigmoid vektorokra
 def v_sigmoid(x):
     for i in range(len(x)):
         x[i][0] = sigmoid(x[i][0])
     return numpy.array(x, dtype=float)
 
 
+# Szigmoid derivált vektorokra
 def v_gradf(x):
     for i in range(len(x)):
         x[i][0] = gradf(x[i][0])
     return numpy.array(x, dtype=float)
 
 
+# Megállási feltételek
 def stop(n, e):
     if n > 5000:
         return True
@@ -185,12 +189,11 @@ def stop(n, e):
     return False
 
 
+# Ábrázoló függvény
 def printPic(n_rows, n_colums, output_list):
     for i in range(n_rows * n_colums):
         subplot(n_rows, n_colums, i + 1)
         title(output_list[i][1])
-        #img = mpimg.imread("std_images/std_{}.jpg".format(output_list[i][0]))
-        #plt.imshow(img)
         plt.imshow(output_list[i][0])
         plt.axis('off')
         plt.subplots_adjust(left=0, bottom=0, right=1, top=0.94, wspace=0.20, hspace=0.48)
@@ -198,6 +201,7 @@ def printPic(n_rows, n_colums, output_list):
     show()
 
 
+# Konfúziós mátrixot előállító függvény
 def konf_matrix(good_pan, bad_pan, good_dalm, bad_dalm):
     values = [['My_Pandas', good_pan, bad_pan], ['My_Dalmatians', bad_dalm, good_dalm]]
     collabel = ("", "Pandas", "Dalmatians")
