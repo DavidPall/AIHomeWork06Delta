@@ -1,11 +1,20 @@
 from PIL import Image
 from random import randint
 import numpy
-import scipy
-from scipy import stats
 from math import e
 from matplotlib import image as mpimg
 from pylab import *
+
+
+def pandasVSdalmatas():
+    train_test_ratio = 0.7
+    lr = 0.0005
+    train, test = load(train_test_ratio)
+
+    print("len tr : {}    len ts : {}".format(len(train[0]), len(test[0])))
+    w, e = OfflineLearning(train[0], train[1], v_sigmoid, v_gradf, lr, stop)
+    print(w)
+    print(e)
 
 
 def OfflineLearning(x, d, v_f, v_gradf, lr, stop):
@@ -16,24 +25,31 @@ def OfflineLearning(x, d, v_f, v_gradf, lr, stop):
     epoch = 0
     x = numpy.array(x, dtype=float)
     d = numpy.array(d, dtype=float)
+    # print("x: {}".format(x[0]))
+    # print("d: {}".format(d[0]))
     while True:
         v = x.dot(w)
         y = v_f(v)
         e = numpy.subtract(y, d)
-        g = numpy.transpose(x).dot(e.dot(v_gradf(v)))
-        w = w.subtract(lr * g)
+        g = numpy.transpose(x)
+        m = element_mult(e, v_gradf(v), 74)
+        g = g.dot(element_mult(e, v_gradf(v), 74))
+        w = numpy.subtract(w,(lr*g))
         E = 0
         for i in e:
-            E += i ** 2
+            E += i[0] ** 2
         if stop(epoch, E):
             break
         epoch += 1
     return w, E
 
 
+
+
+
 def load(ratio):
     decals = []
-    with open("std_images/decals.txt") as f:
+    with open("std_images\\decals.txt") as f:
         for line in f:
             line = line.split()
             decals.append(line[0])
@@ -46,20 +62,37 @@ def load(ratio):
     d_test = []
     img_train = []
     img_test = []
+    scores = []
     for i in range(len(decals)):
-        img = Image.open("std_images/std_" + str(i) + ".jpg", )
-        z_score = scipy.stats.zscore(img)
-        f.close()
+        img = Image.open("std_images\\std_" + str(i) + ".jpg", )
+        sc = []
+        for i in range(100):
+            for j in range(100):
+                sc.append(img.getpixel((i, j)) / 255)
+        scores.append(sc)
+
+    for i in range(len(decals)):
+        img = Image.open("std_images\\std_" + str(i) + ".jpg", )
+
         if i < cut_ind:
-            x_train.append(z_score)
+            x_train.append(scores[i])
             d_train.append([decals[i]])
             img_train.append(img)
         else:
-            x_test.append(z_score)
+            x_test.append(scores[i])
             d_test.append([decals[i]])
             img_test.append(img)
 
+    print("x {}".format(shape(x_train)))
+
     return (x_train, d_train, img_train), (x_test, d_test, img_test)
+
+
+def element_mult(v1, v2, ln):
+    v3 = numpy.zeros((ln, 1))
+    for i in range(ln):
+        v3[i][0] = v1[i][0]*v2[i][0]
+    return v3
 
 
 def sigmoid(x):
@@ -88,15 +121,6 @@ def stop(n, e):
     if e < 0.001:
         return True
     return False
-
-
-def pandasVSdalmatas():
-    train_test_ratio = 0.7
-    lr = 0.0005
-    train, test = load(train_test_ratio)
-
-    print("len tr : {}    len ts : {}".format(len(train[0]), len(test[0])))
-    w, e = OfflineLearning(train[0], train[1], v_sigmoid, v_gradf, lr, stop)
 
 
 def printPic(n_rows, n_colums, output_list):
